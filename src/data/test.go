@@ -1,36 +1,24 @@
-# gstore
-golang redis+mongo store auto sync
-### 说明
-- 这是一个redis+mongodb数据存取同步模块
-- 使用反射实现
-- 定时同步到mongo(默认数据被修改60s后)
-- 使用例子 test.go
+package data
 
-### 配置
-- 全局唯一名字 data/config/config.go 
-- 某一项数据 data/model/userinfo.go
-- 全局map data/data_config.go 
+import (
+	"context"
+	"flag"
+	"fmt"
+	"github.com/go-redis/redis/v8"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"gstore/src/data/config"
+	"gstore/src/data/logger"
+	"gstore/src/data/model"
+	"gstore/src/data/store"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+)
 
-### 例子
-```go
-//接口定义
-type Store interface {
-	Init(opts ...Option) error
-	Name() string
-	Get(id interface{}) (interface{}, error)
-	Set(id, value interface{}) error
-	SetAlways(id, value interface{}) error
+var testDuration = flag.Duration("test_duration", 2*time.Second, "the duration for test")
 
-	Read(id interface{}) (interface{}, error)
-	Save(id, value interface{}) error
-	Sync() error
-
-	ReadMany(tableName string, filter interface{}, option interface{}) (interface{}, error)
-	IsNeedSync() bool
-	Remove(id interface{}) error
-}
-
-//创建实例
 func newCache() *store.CacheStore {
 	//-----------------------------------------------------
 	redisCfg := &store.RedisCfg{
@@ -50,6 +38,7 @@ func newCache() *store.CacheStore {
 	})
 	mongo, err := mongo.Connect(context.Background(), options.Client().ApplyURI(mongoCfg.Url).SetMaxPoolSize(20))
 	if err != nil {
+		fmt.Println("newCache err:", err)
 		return nil
 	}
 	//-----------------------------------------------------
@@ -58,11 +47,12 @@ func newCache() *store.CacheStore {
 		redis,
 		mongo)
 	if err != nil {
+		fmt.Println("newCache err:", err)
 		return nil
 	}
 	return userCache
 }
-//读写
+
 func example(user *store.CacheStore) {
 	id := "1000"
 	item, err := user.Get(id)
@@ -87,7 +77,8 @@ func example(user *store.CacheStore) {
 		}
 	}
 }
-func main() {
+
+func TestData() {
 	//创建
 	userCache := newCache()
 	//启动同步
@@ -110,6 +101,3 @@ func main() {
 		}
 	}
 }
-```
-
-
