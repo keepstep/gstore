@@ -741,7 +741,7 @@ func (d *CacheZSet) syncLoadFromDB(id interface{}) error {
 		"$sort":  bson.M{"score": d.options.tzsetSort},
 		"$slice": d.options.tzsetCountLimit,
 	}
-	//存在的不添加
+	//不限额
 	if d.options.tzsetCountLimit <= 0 {
 		list["$slice"] = nil
 	}
