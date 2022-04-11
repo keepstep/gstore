@@ -77,7 +77,7 @@ func RunSync(exit chan string) {
 }
 
 //----------------------------------------
-func NewCacheData(name string, cache *redis.Client, db *mongo.Client) (*store.CacheStore, error) {
+func NewCacheData(name string, cache *redis.Client, db *mongo.Client) (store.Store, error) {
 	cfg := GetDataConfig(name)
 	if cfg == nil {
 		return nil, errors.New("no data config name :" + name)
@@ -96,7 +96,7 @@ func NewCacheData(name string, cache *redis.Client, db *mongo.Client) (*store.Ca
 		store.MongoClient(db),
 		store.MongoDB(cfg.DBName),
 		store.MongoTable(cfg.TableName),
-		store.SyncParam(cfg.SyncTimeout, cfg.SyncCount),
+		store.SyncParam(cfg.SyncDisable, cfg.SyncTimeout, cfg.SyncCount),
 	)
 	if err != nil {
 		return nil, errors.New("Init err name :" + name)
@@ -107,7 +107,7 @@ func NewCacheData(name string, cache *redis.Client, db *mongo.Client) (*store.Ca
 	return st, nil
 }
 
-func NewCacheZSet(name string, cache *redis.Client) (store.ZSetStore, error) {
+func NewCacheZSet(name string, cache *redis.Client, db *mongo.Client) (store.ZSetStore, error) {
 	cfg := GetZSetDataConfig(name)
 	if cfg == nil {
 		return nil, errors.New("no data config name :" + name)
@@ -123,9 +123,18 @@ func NewCacheZSet(name string, cache *redis.Client) (store.ZSetStore, error) {
 		store.Expired(cfg.ExpireTime),
 		store.ReidsClient(cache),
 		store.CacheKey(cacheKey),
+		store.MongoClient(db),
+		store.MongoDB(cfg.DBName),
+		store.MongoTable(cfg.TableName),
+		store.SyncParam(cfg.SyncDisable, cfg.SyncTimeout, cfg.SyncCount),
+		store.TZSetCountLimit(cfg.CountLimit),
+		store.TZSetSort(cfg.Sort),
 	)
 	if err != nil {
 		return nil, errors.New("Init err name :" + name)
+	}
+	if st.IsNeedSync() {
+		AddToSyncList(st)
 	}
 	return st, nil
 }

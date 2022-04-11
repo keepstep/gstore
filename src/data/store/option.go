@@ -36,6 +36,7 @@ type Options struct {
 
 	syncTimeout      int64 //距离上一次更新多久 作为落地条件
 	syncCountPerTime int64 //每批次落地数量
+	syncDisable      bool  //精致同步
 
 	tdata            interface{}
 	tdataKind        reflect.Kind
@@ -45,6 +46,9 @@ type Options struct {
 
 	tkeyKind reflect.Kind
 	tkeyType reflect.Type
+
+	tzsetCountLimit int64 //最大member数量,仅load的时候会排序截取
+	tzsetSort       int64 //升序还是降序叙
 }
 
 // Option sets values in Options
@@ -179,10 +183,29 @@ func TMemoryData(key, data interface{}) Option {
 	}
 }
 
-
-func SyncParam(timeout,count int64) Option {
+func SyncParam(disable bool, timeout, count int64) Option {
 	return func(o *Options) {
+		o.syncDisable = disable
 		o.syncTimeout = timeout
 		o.syncCountPerTime = count
+	}
+}
+
+func TZSetCountLimit(count int64) Option {
+	return func(o *Options) {
+		if count > 0 {
+			o.tzsetCountLimit = count
+		} else {
+			count = 0
+		}
+	}
+}
+func TZSetSort(flag int64) Option {
+	return func(o *Options) {
+		if flag > 0 {
+			o.tzsetSort = 1
+		} else {
+			o.tzsetSort = -1
+		}
 	}
 }

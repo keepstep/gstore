@@ -6,11 +6,12 @@ import (
 )
 
 var dataConfigList = map[string]*config.DataConfig{
-	config.Name_userinfo:              &model.CfgUserinfo,
+	config.Name_userinfo: &model.CfgUserinfo,
 }
 
 var zsetDataConfigList = map[string]*config.ZSetDataConfig{
-
+	config.Name_user_active:    &model.CfgUserActive,
+	config.Name_user_recommend: &model.CfgUserRecommend,
 }
 
 var memoryDataConfigList = map[string]*config.MemoryDataConfig{

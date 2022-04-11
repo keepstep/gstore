@@ -95,6 +95,9 @@ func (d *CacheStore) Init(opts ...Option) error {
 			d.options.needSync = true
 		}
 	}
+	if d.options.syncDisable {
+		d.options.needSync = false
+	}
 	return nil
 }
 func (d *CacheStore) Name() string {
