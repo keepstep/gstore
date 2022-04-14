@@ -140,10 +140,28 @@ func exampleZSet2(user store.ZSetStore) {
 		user.ZIncrBy(10, member+100000)
 		user.ZIncrBy(10, member+2*100000)
 	}
+	err = user.ZAdd(1000, member)
+	err = user.ZAdd(1000, member*2)
+	err = user.ZAdd(1000, member*3)
 }
 func exampleZSet2Rem(user store.ZSetStore, min, max string) {
 	user.ZRemRangeByScore(min, max)
 }
+func exampleZSet3(user store.ZSetStore) {
+	var member uint64 = 100
+	user.ZAdd(1000, member)
+	time.Sleep(time.Second*5)
+	user.ZAdd(1000, member*2)
+	time.Sleep(time.Second*5)
+	user.ZAdd(1000, member*3)
+	time.Sleep(time.Second*5)
+	user.ZIncrBy(10, member)
+	time.Sleep(time.Second*5)
+	user.ZIncrBy(20, member*2)
+	time.Sleep(time.Second*5)
+	user.ZIncrBy(30, member*3)
+}
+
 
 func TestStoreData() {
 	//创建
@@ -174,6 +192,7 @@ func TestZSetData() {
 	//启动同步
 	exit := make(chan string)
 	go RunSync(exit)
+	exampleZSet3(userActive)
 	//-----------------------------------------------------
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL)
@@ -183,9 +202,9 @@ func TestZSetData() {
 		case <-t.C:
 			//读写操作
 			//exampleZSet(userActive)
-			exampleZSet2(userActive)
+			//exampleZSet2(userActive)
 		case s := <-quit:
-			exampleZSet2Rem(userActive, "0", "4000")
+			//exampleZSet2Rem(userActive, "0", "4000")
 			t.Stop()
 			logger.Errorf("quit received signal:%v", s.String())
 			close(exit)

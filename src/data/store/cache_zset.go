@@ -1002,7 +1002,7 @@ func (d *CacheZSet) syncOne(key string, version string) (insert int, err error) 
 		rst, updErr := coll.UpdateOne(ctx, filter, bson.M{
 			"$set": bson.M{
 				"list.$[elem].score": score,
-				"update_time":        time.Now().Unix(),
+				//"update_time":        time.Now().Unix(),这会导致判断出错
 			},
 		}, opts)
 
